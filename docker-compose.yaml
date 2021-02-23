@@ -43,6 +43,18 @@ services:
       - ./ghost/run.sh:/tmp/run.sh
     command: /bin/bash -x /tmp/run.sh
 
+  ptkit:
+    container_name: ptkit
+    network_mode: host
+    build:
+      context: ptkit
+      dockerfile: Dockerfile
+    image: local/ptkit:v3.3.0
+    volumes:
+      - ./ptkit/run.sh:/tmp/run.sh
+    command: /bin/bash -x /tmp/run.sh
+
+
 volumes:
   mysql-master-data-volume:
   mysql-replica-data-volume:

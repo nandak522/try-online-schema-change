@@ -1,0 +1,48 @@
+version: "3"
+services:
+  mysql-master:
+    container_name: mysql-master
+    network_mode: host
+    image: mysql/mysql-server:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_USER: root
+      MYSQL_PASSWORD: toor
+      MYSQL_DATABASE: test
+    volumes:
+      - mysql-master-data-volume:/var/lib/mysql
+      - ./mysql/my-master.cnf:/etc/my.cnf
+    expose:
+      - 3307
+
+  mysql-replica:
+    container_name: mysql-replica
+    network_mode: host
+    image: mysql/mysql-server:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_USER: root
+      MYSQL_PASSWORD: toor
+      MYSQL_DATABASE: test
+    volumes:
+      - mysql-replica-data-volume:/var/lib/mysql
+      - ./mysql/my-replica.cnf:/etc/my.cnf
+    expose:
+      - 3308
+    depends_on:
+      - mysql-master
+
+  ghost:
+    container_name: ghost
+    network_mode: host
+    build:
+      context: ghost
+      dockerfile: Dockerfile
+    image: local/ghost:v1.1.0
+    volumes:
+      - ./ghost/run.sh:/tmp/run.sh
+    command: /bin/bash -x /tmp/run.sh
+
+volumes:
+  mysql-master-data-volume:
+  mysql-replica-data-volume:

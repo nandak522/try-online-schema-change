@@ -1,0 +1,22 @@
+[mysqld]
+server-id=2
+read-only=1
+skip-host-cache
+skip-name-resolve
+datadir=/var/lib/mysql
+socket=/var/lib/mysql/mysql.sock
+secure-file-priv=/var/lib/mysql-files
+user=mysql
+symbolic-links=0
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+max_connections = 5000
+sync_binlog=1
+binlog_format=ROW
+binlog_order_commits=1
+innodb_flush_log_at_trx_commit=1
+port=3308
+relay-log-index=slave-relay-bin.index
+relay-log=slave-relay-bin
+log-bin=bin.log
+log_slave_updates=ON

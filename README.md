@@ -13,7 +13,7 @@ ALTER TABLE try_gh_ost.baseitem DROP PRIMARY KEY;
 ALTER TABLE try_gh_ost.baseitem MODIFY COLUMN id bigint(20) NOT NULL AUTO_INCREMENT PRIMARY KEY;
 ```
 
-Iteration 2
+Iteration 2 (didn't work)
 ```sql
 ALTER TABLE try_gh_ost.baseitem DROP CONSTRAINT PRIMARY;
 alter table try_gh_ost.baseitem modify column id bigint(20) NOT NULL AUTO_INCREMENT;

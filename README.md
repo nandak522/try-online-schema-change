@@ -15,8 +15,10 @@ ALTER TABLE try_gh_ost.baseitem MODIFY COLUMN id bigint(20) NOT NULL AUTO_INCREM
 
 Iteration 2 (didn't work)
 ```sql
-ALTER TABLE try_gh_ost.baseitem DROP CONSTRAINT PRIMARY;
-alter table try_gh_ost.baseitem modify column id bigint(20) NOT NULL AUTO_INCREMENT;
+mysql> ALTER TABLE try_gh_ost.baseitem DROP CONSTRAINT PRIMARY;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'CONSTRAINT PRIMARY' at line 1
+mysql> alter table try_gh_ost.baseitem modify column id bigint(20) NOT NULL AUTO_INCREMENT;
+ERROR 1833 (HY000): Cannot change column 'id': used in a foreign key constraint 'baseitem_id_refs_id_2d6ba49a' of table 'try_gh_ost.referringitem'
 alter table try_gh_ost.baseitem add primary key (id);
 ```
 

@@ -10,7 +10,7 @@ gh-ost \
     -assume-rbr \
     -host 127.0.0.1 \
     -port 3308 \
-    -database test_schema \
+    -database try_osc \
     -user repl_user_replica \
     -password toor \
     -assume-master-host 127.0.0.1:3307 \

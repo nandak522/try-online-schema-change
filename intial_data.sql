@@ -22,9 +22,9 @@ show master status \G
 
 
 -- create schema on master
-CREATE DATABASE test_schema;
-use test_schema;
-CREATE TABLE test_schema.baseitem (
+CREATE DATABASE try_osc;
+use try_osc;
+CREATE TABLE try_osc.baseitem (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `created_on` datetime NOT NULL,
   `updated_on` datetime NOT NULL,
@@ -33,12 +33,12 @@ CREATE TABLE test_schema.baseitem (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- create schema on master
-CREATE TABLE test_schema.referringitem (
+CREATE TABLE try_osc.referringitem (
+  `baseitem_id` int(11) NOT NULL,
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `created_on` datetime NOT NULL,
   `updated_on` datetime NOT NULL,
   `some_id` int(11) NOT NULL,
-  `baseitem_id` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `referringitem_23d46617` (`some_id`),
   KEY `referringitem_34e005d0` (`baseitem_id`),
@@ -50,28 +50,39 @@ select * from information_schema.TABLE_CONSTRAINTS where table_name = 'baseitem'
 select * from information_schema.TABLE_CONSTRAINTS where table_name = 'referringitem';
 
 -- load data on master
-insert into test_schema.baseitem(created_on, updated_on, product_id) values(now(), now(), 1);
-insert into test_schema.baseitem(created_on, updated_on, product_id) values(now(), now(), 2);
-insert into test_schema.baseitem(created_on, updated_on, product_id) values(now(), now(), 1);
-insert into test_schema.baseitem(created_on, updated_on, product_id) values(now(), now(), 4);
+insert into try_osc.baseitem(created_on, updated_on, product_id) values(now(), now(), 1);
+insert into try_osc.baseitem(created_on, updated_on, product_id) values(now(), now(), 2);
+insert into try_osc.baseitem(created_on, updated_on, product_id) values(now(), now(), 1);
+insert into try_osc.baseitem(created_on, updated_on, product_id) values(now(), now(), 4);
 
 -- load data on master
-insert into test_schema.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 1);
-insert into test_schema.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 2);
-insert into test_schema.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 2);
-insert into test_schema.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 1);
-insert into test_schema.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 4);
+insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 1);
+insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 2);
+insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 2);
+insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 1);
+insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 4);
 
 -- load the below data on master after the migration
-insert into test_schema.baseitem(created_on, updated_on, product_id) values(now(), now(), 2);
-insert into test_schema.baseitem(created_on, updated_on, product_id) values(now(), now(), 3);
-insert into test_schema.baseitem(created_on, updated_on, product_id) values(now(), now(), 1);
-insert into test_schema.baseitem(created_on, updated_on, product_id) values(now(), now(), 4);
-insert into test_schema.baseitem(created_on, updated_on, product_id) values(now(), now(), 5);
+insert into try_osc.baseitem(created_on, updated_on, product_id) values(now(), now(), 2);
+insert into try_osc.baseitem(created_on, updated_on, product_id) values(now(), now(), 3);
+insert into try_osc.baseitem(created_on, updated_on, product_id) values(now(), now(), 1);
+insert into try_osc.baseitem(created_on, updated_on, product_id) values(now(), now(), 4);
+insert into try_osc.baseitem(created_on, updated_on, product_id) values(now(), now(), 5);
 
 -- load the below data on master after the migration
-insert into test_schema.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 2);
-insert into test_schema.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 3);
-insert into test_schema.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 1);
-insert into test_schema.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 1);
-insert into test_schema.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 5);
+insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 2);
+insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 3);
+insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 1);
+insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 1);
+insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 5);
+
+-- Manually fixing the keys
+-- ALTER TABLE `try_osc`.`referringitem`
+--   DROP FOREIGN KEY `baseitem_id_refs_id_2d6ba49a`,
+--   ADD CONSTRAINT `_baseitem_id_refs_id_2d6ba49a` FOREIGN KEY (`baseitem_id`) REFERENCES `try_osc`.`baseitem` (`id`);
+
+-- ALTER TABLE `try_osc`.`referringitem`
+--   DROP FOREIGN KEY `baseitem_id_refs_id_2d6ba49a`;
+
+-- ALTER TABLE try_osc.referringitem
+--   ADD CONSTRAINT _baseitem_id_refs_id_2d6ba49a FOREIGN KEY  (baseitem_id) REFERENCES try_osc.baseitem (id);

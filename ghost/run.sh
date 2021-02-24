@@ -3,7 +3,7 @@ set -eoux pipefail
 # which gh-ost
 # netstat -peanut | grep 330
 
-# # Approach 1 : Bails out
+# # Approach 1 : Bails out. Either with parent-side or child-side of FKs.
 # gh-ost \
 #     -verbose \
 #     -debug \

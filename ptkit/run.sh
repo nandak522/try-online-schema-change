@@ -4,7 +4,7 @@ set -eoux pipefail
 # netstat -peanut | grep 330
 # export PTDEBUG=1
 
-# Approach-1 => Straight approach.
+# # Approach-1 => Straight approach.
 # # Not possible. Errors out if FKs are there
 # pt-online-schema-change \
 #     --alter "MODIFY id bigint(20) NOT NULL AUTO_INCREMENT;" \
@@ -45,7 +45,7 @@ pt-online-schema-change \
 # mysql>
 # -- With this flag, re-adding the FKs is very quick because it doesn't have to evaluate if there are any violations.
 # set foreign_key_checks=off;
-# ALTER TABLE try_osc.referringitem ADD CONSTRAINT _baseitem_id_refs_id_2d6ba49a FOREIGN KEY  (baseitem_id) REFERENCES try_osc.baseitem (id);
+# ALTER TABLE try_osc.referringitem ADD CONSTRAINT baseitem_id_refs_id_2d6ba49a FOREIGN KEY  (baseitem_id) REFERENCES try_osc.baseitem (id);
 # set foreign_key_checks=on;
 
 # BIG NOTE: So you have a tiny window where data integrity is not enforced.

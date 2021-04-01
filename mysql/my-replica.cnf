@@ -20,3 +20,4 @@ relay-log-index=slave-relay-bin.index
 relay-log=slave-relay-bin
 log-bin=bin.log
 log_slave_updates=ON
+expire-logs-days=1

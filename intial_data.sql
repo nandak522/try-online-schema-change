@@ -63,6 +63,26 @@ insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) 
 insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 1);
 insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 4);
 
+-- After confirming that the above data is replicated to replica, purge the bin logs on replica
+
+SELECT NOW();
+-- Use the timestamp from the above command in the below command
+PURGE BINARY LOGS BEFORE '2021-04-01 17:03:26';
+
+-- More inserts on master
+insert into try_osc.baseitem(created_on, updated_on, product_id) values(now(), now(), 1);
+insert into try_osc.baseitem(created_on, updated_on, product_id) values(now(), now(), 2);
+insert into try_osc.baseitem(created_on, updated_on, product_id) values(now(), now(), 1);
+insert into try_osc.baseitem(created_on, updated_on, product_id) values(now(), now(), 4);
+-- insert into try_osc.baseitem(created_on, updated_on, product_id) values(now(), now(), 2147483648);
+
+-- More inserts on master
+insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 1);
+insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 2);
+insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 2);
+insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 1);
+insert into try_osc.referringitem(created_on, updated_on, some_id, baseitem_id) values(now(), now(), 10, 4);
+
 -- Do the migration, either through pt-online-schema-change or gh-ost
 
 -- Manually fixing the keys

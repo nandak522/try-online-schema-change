@@ -16,4 +16,5 @@ binlog_order_commits=1
 innodb_flush_log_at_trx_commit=1
 port=3307
 log-bin=bin.log
+expire-logs-days=1
 log_slave_updates=ON

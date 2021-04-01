@@ -5,16 +5,16 @@ docker-compose up mysql-master mysql-replica
 
 Load data using `initial_data.sql`
 
-### Normal vanila alter
+### Approaches to Alter
 
-Iteration 1 (didn't work)
+#### Iteration 1 (Vanila alter. didn't work)
 ```sql
 ALTER TABLE try_osc.baseitem DROP PRIMARY KEY;
 ALTER TABLE try_osc.baseitem MODIFY COLUMN id bigint(20) NOT NULL AUTO_INCREMENT PRIMARY KEY;
 ```
 
 ---
-Iteration 2 (didn't work)
+#### Iteration 2 (Vanila alter. didn't work)
 ```sql
 mysql> ALTER TABLE try_osc.baseitem DROP CONSTRAINT PRIMARY;
 ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'CONSTRAINT PRIMARY' at line 1
@@ -24,9 +24,8 @@ alter table try_osc.baseitem add primary key (id);
 ```
 
 ---
-Iteration 3 (didn't work)
+#### Iteration 3 (Using Gh-ost. didn't work)
 ```sh
-# Using hhost
 cd <this folder>
 docker-compose up ghost
 Building with native build. Learn about native build in Compose here: https://docs.docker.com/go/compose-native-build/
@@ -71,7 +70,7 @@ ghost exited with code 1
 ```
 
 ---
-Iteration 4 (ptonline-schema-change)
+#### Iteration 4 (Using ptonline-schema-change. didn't work.)
 ```sh
 cd <this folder>
 docker-compose up ptkit
@@ -161,7 +160,8 @@ ptkit            | Altered `try_osc`.`baseitem` but there were errors or warning
 ptkit exited with code 15
 ```
 
-Iteration 5 (using gh-ost after dropping foreign keys)
+---
+#### Iteration 5 (using gh-ost after dropping foreign keys. Worked.)
 ```sh
 cd <this folder>
 docker-compose up ghost
@@ -422,3 +422,6 @@ ghost            | 2021-04-01 17:34:02 INFO Tearing down throttler
 ghost            | 2021-04-01 17:34:02 DEBUG Tearing down...
 ghost exited with code 0
 ```
+
+---
+#### Iteration 6 (Using pt-online-schema, after dropping foreign keys. Worked.)

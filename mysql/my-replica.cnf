@@ -21,3 +21,6 @@ relay-log=slave-relay-bin
 log-bin=bin.log
 log_slave_updates=ON
 expire-logs-days=1
+general-log=ON
+general-log-file=/var/log/mysql-queries.log
+log-output=FILE

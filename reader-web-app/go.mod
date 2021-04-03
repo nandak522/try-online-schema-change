@@ -1,4 +1,4 @@
-module github.com/none-da/hello-universe-go-app/reader-web-app
+module github.com/none-da/try-online-schema-change/reader-web-app
 
 go 1.15
 

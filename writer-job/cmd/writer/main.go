@@ -37,12 +37,58 @@ func checkErr(err error) {
 	}
 }
 
+func insertRows(tableName *string, noDryRunPtr *bool, db *sql.DB) {
+	selectQuery := fmt.Sprintf("select created_on, updated_on, product_id from %s where id >= 1 limit 1;", *tableName)
+	log.Debug(selectQuery)
+	results, err := db.Query(selectQuery)
+	checkErr(err)
+	cols, err := results.Columns()
+	checkErr(err)
+	columnsLength := len(cols)
+
+	// Create a slice of interface{}'s to represent each column,
+	// and a second slice to contain pointers to each item in the columns slice.
+	columns := make([]interface{}, len(cols))
+	columnPointers := make([]interface{}, len(cols))
+	for i := range columns {
+		columnPointers[i] = &columns[i]
+	}
+	results.Next()
+	// Scan the result into the column pointers...
+	err = results.Scan(columnPointers...)
+	checkErr(err)
+
+	valueArgs := make([]interface{}, 0, columnsLength)
+
+	insertTxn, err := db.Begin()
+	checkErr(err)
+
+	for i := range columns {
+
+		// TODO: This columnPointers[i].(*interface{}) interpretation has to be clearly understood
+		columnValue := columnPointers[i].(*interface{})
+		valueArgs = append(valueArgs, *columnValue)
+	}
+	destinationInsertQuery := fmt.Sprintf("insert into %s(created_on, updated_on, product_id) values(?, ?, ?)", *tableName)
+	log.Debug(destinationInsertQuery)
+	if *noDryRunPtr {
+		result, err := insertTxn.Exec(destinationInsertQuery, valueArgs...)
+		checkErr(err)
+		affected, err := result.RowsAffected()
+		checkErr(err)
+		log.Info(fmt.Sprintf("RowsAffected: %d", affected))
+	}
+	err = insertTxn.Commit()
+	checkErr(err)
+}
+
 func main() {
 	var requiredLogLevel string
 	flag.StringVarP(&requiredLogLevel, "log-level", "l", "info", "Required log level. debug/info/warn/error.")
 	var printHelp bool
 	flag.BoolVarP(&printHelp, "help", "h", false, "Prints this help content.")
-	tablePtr := flag.String("table", "", "table name")
+	var tableName string
+	flag.StringVarP(&tableName, "table", "t", "", "Required table name.")
 	noDryRunPtr := flag.Bool("no-dryrun", false, "dry-run option. required for performing insert")
 	maxOpenConnectionsToDbPtr := flag.Int("max-open-conns-db", 200, "Max Open Connections to the Db.")
 	maxIdleConnectionsToDbPtr := flag.Int("max-idle-conns-db", 10, "Max Idle Connections to the Db.")
@@ -64,17 +110,21 @@ func main() {
 		log.SetLevel(log.InfoLevel)
 	}
 	log.SetFormatter(&log.JSONFormatter{
-		TimestampFormat: time.RFC3339,
+		TimestampFormat:   time.RFC3339,
+		DisableHTMLEscape: true,
 	})
 	log.SetOutput(os.Stdout)
+	if tableName == "" {
+		log.Fatal("Please supply the table name using --table")
+	}
 
 	log.Info("I am a writer")
 
 	dbConfig := validateEnvVars()
 
-	dSNString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8", dbConfig["DB_USER"], dbConfig["DB_STORE_CONFIG_PASSWORD"], dbConfig["DB_HOST"], dbConfig["DB_PORT"], dbConfig["DB_NAME"])
-	log.Debug(fmt.Sprintf("dSNString: %s", dSNString))
-	db, err := sql.Open("mysql", dSNString)
+	dsnString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8", dbConfig["DB_USER"], dbConfig["DB_PASSWORD"], dbConfig["DB_HOST"], dbConfig["DB_PORT"], dbConfig["DB_NAME"])
+	log.Debug("dsnString: ", dsnString)
+	db, err := sql.Open("mysql", dsnString)
 	checkErr(err)
 	db.SetMaxOpenConns(*maxOpenConnectionsToDbPtr)
 	db.SetMaxIdleConns(*maxIdleConnectionsToDbPtr)
@@ -82,7 +132,5 @@ func main() {
 	err = db.Ping()
 	checkErr(err)
 
-	log.Info(dSNString)
-	log.Info(*tablePtr)
-	log.Info(*noDryRunPtr)
+	insertRows(&tableName, noDryRunPtr, db)
 }

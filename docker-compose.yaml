@@ -75,7 +75,11 @@ services:
       - debug
       - -t
       - try_osc.baseitem
-      - --no-dryrun
+      - --nodryrun
+      - -s
+      - "1"
+      - -r
+      - "10"
 
 volumes:
   mysql-master-data-volume:

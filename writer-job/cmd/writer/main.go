@@ -37,7 +37,7 @@ func checkErr(err error) {
 	}
 }
 
-func insertRows(tableName *string, noDryRunPtr *bool, db *sql.DB) {
+func insertRows(tableName *string, noDryRunPtr *bool, db *sql.DB, sleepTimeBetweenInsertsPtr *int64, rowsToInsert *int64) {
 	selectQuery := fmt.Sprintf("select created_on, updated_on, product_id from %s where id >= 1 limit 1;", *tableName)
 	log.Debug(selectQuery)
 	results, err := db.Query(selectQuery)
@@ -60,9 +60,6 @@ func insertRows(tableName *string, noDryRunPtr *bool, db *sql.DB) {
 
 	valueArgs := make([]interface{}, 0, columnsLength)
 
-	insertTxn, err := db.Begin()
-	checkErr(err)
-
 	for i := range columns {
 
 		// TODO: This columnPointers[i].(*interface{}) interpretation has to be clearly understood
@@ -72,14 +69,25 @@ func insertRows(tableName *string, noDryRunPtr *bool, db *sql.DB) {
 	destinationInsertQuery := fmt.Sprintf("insert into %s(created_on, updated_on, product_id) values(?, ?, ?)", *tableName)
 	log.Debug(destinationInsertQuery)
 	if *noDryRunPtr {
-		result, err := insertTxn.Exec(destinationInsertQuery, valueArgs...)
-		checkErr(err)
-		affected, err := result.RowsAffected()
-		checkErr(err)
-		log.Info(fmt.Sprintf("RowsAffected: %d", affected))
+		log.WithFields(log.Fields{"noDryRunPtr": false}).Info("Changes will be done to db.")
+		for index := int64(0); index < *rowsToInsert; index++ {
+			insertTxn, err := db.Begin()
+			checkErr(err)
+			result, err := insertTxn.Exec(destinationInsertQuery, valueArgs...)
+			checkErr(err)
+			affected, err := result.RowsAffected()
+			checkErr(err)
+			log.Debug(fmt.Sprintf("RowsAffected: %d", affected))
+			err = insertTxn.Commit()
+			checkErr(err)
+			if *sleepTimeBetweenInsertsPtr != 0 {
+				log.Info(fmt.Sprintf("Relaxing for %d Seconds", *sleepTimeBetweenInsertsPtr))
+				time.Sleep(time.Duration(*sleepTimeBetweenInsertsPtr) * time.Second)
+			}
+		}
+	} else {
+		log.WithFields(log.Fields{"noDryRunPtr": true}).Info("No changes done to db.")
 	}
-	err = insertTxn.Commit()
-	checkErr(err)
 }
 
 func main() {
@@ -89,9 +97,13 @@ func main() {
 	flag.BoolVarP(&printHelp, "help", "h", false, "Prints this help content.")
 	var tableName string
 	flag.StringVarP(&tableName, "table", "t", "", "Required table name.")
-	noDryRunPtr := flag.Bool("no-dryrun", false, "dry-run option. required for performing insert")
+	noDryRunPtr := flag.Bool("nodryrun", false, "dry-run option. required to be disabled explicitly for performing inserts")
 	maxOpenConnectionsToDbPtr := flag.Int("max-open-conns-db", 200, "Max Open Connections to the Db.")
 	maxIdleConnectionsToDbPtr := flag.Int("max-idle-conns-db", 10, "Max Idle Connections to the Db.")
+	var sleepTimeBetweenInsertsPtr int64
+	flag.Int64VarP(&sleepTimeBetweenInsertsPtr, "sleep-between-inserts", "s", 0, "sleep time in seconds between inserts, to do db commits")
+	var rowsToInsert int64
+	flag.Int64VarP(&rowsToInsert, "rows-to-insert", "r", 1, "Rows to insert.")
 	flag.Parse()
 	if printHelp {
 		flag.Usage()
@@ -132,5 +144,6 @@ func main() {
 	err = db.Ping()
 	checkErr(err)
 
-	insertRows(&tableName, noDryRunPtr, db)
+	insertRows(&tableName, noDryRunPtr, db, &sleepTimeBetweenInsertsPtr, &rowsToInsert)
+	log.Info("load finished")
 }

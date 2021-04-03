@@ -1,4 +1,4 @@
-module github.com/none-da/try-online-schema-change
+module github.com/none-da/try-online-schema-change/writer-job
 
 go 1.16
 

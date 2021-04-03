@@ -7,6 +7,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/none-da/try-online-schema-change/writer-job/pkg/writer"
 	log "github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
 )
@@ -29,65 +30,6 @@ func validateEnvVars() map[string]string {
 	}
 
 	return dbConfig
-}
-
-func checkErr(err error) {
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-}
-
-func insertRows(tableName *string, noDryRunPtr *bool, db *sql.DB, sleepTimeBetweenInsertsPtr *int64, rowsToInsert *int64) {
-	selectQuery := fmt.Sprintf("select created_on, updated_on, product_id from %s where id >= 1 limit 1;", *tableName)
-	log.Debug(selectQuery)
-	results, err := db.Query(selectQuery)
-	checkErr(err)
-	cols, err := results.Columns()
-	checkErr(err)
-	columnsLength := len(cols)
-
-	// Create a slice of interface{}'s to represent each column,
-	// and a second slice to contain pointers to each item in the columns slice.
-	columns := make([]interface{}, len(cols))
-	columnPointers := make([]interface{}, len(cols))
-	for i := range columns {
-		columnPointers[i] = &columns[i]
-	}
-	results.Next()
-	// Scan the result into the column pointers...
-	err = results.Scan(columnPointers...)
-	checkErr(err)
-
-	valueArgs := make([]interface{}, 0, columnsLength)
-
-	for i := range columns {
-
-		// TODO: This columnPointers[i].(*interface{}) interpretation has to be clearly understood
-		columnValue := columnPointers[i].(*interface{})
-		valueArgs = append(valueArgs, *columnValue)
-	}
-	destinationInsertQuery := fmt.Sprintf("insert into %s(created_on, updated_on, product_id) values(?, ?, ?)", *tableName)
-	log.Debug(destinationInsertQuery)
-	if *noDryRunPtr {
-		log.WithFields(log.Fields{"noDryRunPtr": false}).Info("Changes will be done to db.")
-		for index := int64(0); index < *rowsToInsert; index++ {
-			insertTxn, err := db.Begin()
-			checkErr(err)
-			result, err := insertTxn.Exec(destinationInsertQuery, valueArgs...)
-			checkErr(err)
-			affected, err := result.RowsAffected()
-			checkErr(err)
-			log.Debug(fmt.Sprintf("RowsAffected: %d", affected))
-			err = insertTxn.Commit()
-			checkErr(err)
-			if *sleepTimeBetweenInsertsPtr != 0 {
-				log.Info(fmt.Sprintf("Relaxing for %d Seconds", *sleepTimeBetweenInsertsPtr))
-				time.Sleep(time.Duration(*sleepTimeBetweenInsertsPtr) * time.Second)
-			}
-		}
-	} else {
-		log.WithFields(log.Fields{"noDryRunPtr": true}).Info("No changes done to db.")
-	}
 }
 
 func main() {
@@ -137,13 +79,13 @@ func main() {
 	dsnString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8", dbConfig["DB_USER"], dbConfig["DB_PASSWORD"], dbConfig["DB_HOST"], dbConfig["DB_PORT"], dbConfig["DB_NAME"])
 	log.Debug("dsnString: ", dsnString)
 	db, err := sql.Open("mysql", dsnString)
-	checkErr(err)
+	writer.CheckErr(err)
 	db.SetMaxOpenConns(*maxOpenConnectionsToDbPtr)
 	db.SetMaxIdleConns(*maxIdleConnectionsToDbPtr)
 
 	err = db.Ping()
-	checkErr(err)
+	writer.CheckErr(err)
 
-	insertRows(&tableName, noDryRunPtr, db, &sleepTimeBetweenInsertsPtr, &rowsToInsert)
+	writer.InsertRows(&tableName, noDryRunPtr, db, &sleepTimeBetweenInsertsPtr, &rowsToInsert)
 	log.Info("load finished")
 }

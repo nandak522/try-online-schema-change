@@ -2,7 +2,7 @@
 -- on master
 CREATE USER repl_user@'%';
 GRANT REPLICATION SLAVE ON *.* TO repl_user@'%' IDENTIFIED BY 'toor';
-GRANT ALL PRIVILEGES ON *.* TO root@'%' IDENTIFIED BY 'toor' with grant option;FLUSH PRIVILEGES;
+GRANT ALL PRIVILEGES ON *.* TO root@'%' IDENTIFIED BY 'toor' with grant option;
 FLUSH PRIVILEGES;
 show master status \G
 
@@ -14,10 +14,11 @@ CHANGE MASTER TO
     MASTER_USER='repl_user',
     MASTER_PASSWORD='toor',
     MASTER_LOG_FILE='bin.000003',
-    MASTER_LOG_POS=1247;
+    MASTER_LOG_POS=1095;
 start slave;
 CREATE USER repl_user_replica@'%';
-GRANT ALL PRIVILEGES ON *.* TO repl_user_replica@'%' IDENTIFIED BY 'toor' with grant option;FLUSH PRIVILEGES;
+GRANT ALL PRIVILEGES ON *.* TO repl_user_replica@'%' IDENTIFIED BY 'toor' with grant option;
+FLUSH PRIVILEGES;
 show master status \G
 
 

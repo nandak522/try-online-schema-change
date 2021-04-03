@@ -21,7 +21,7 @@ type BaseItem struct {
 }
 
 func ReadData(db *sql.DB) *BaseItem {
-	selectQuery := "select created_on, updated_on, product_id from try_osc.baseitem where id >= 1 limit 1;"
+	selectQuery := "select created_on, updated_on, product_id from try_osc.baseitem where id >= 1 order by id desc limit 1;"
 	log.Debug(selectQuery)
 	results, err := db.Query(selectQuery)
 	CheckErr(err)

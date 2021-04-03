@@ -1,6 +1,6 @@
-module github.com/none-da/try-online-schema-change/writer-job
+module github.com/none-da/hello-universe-go-app/reader-web-app
 
-go 1.16
+go 1.15
 
 require (
 	github.com/go-sql-driver/mysql v1.6.0

@@ -25,6 +25,7 @@ set -eoux pipefail
 # ALTER TABLE try_osc.referringitem DROP FOREIGN KEY baseitem_id_refs_id_2d6ba49a;
 
 # # Continuing Approach-2 => Evolve child table(s) next
+touch /tmp/gh-ost.postpone.referringitem.cutover.flag.file
 gh-ost \
     -verbose \
     -debug \
@@ -40,10 +41,13 @@ gh-ost \
     -master-user root \
     -master-password toor \
     -table referringitem \
+    -timestamp-old-table \
+    -postpone-cut-over-flag-file /tmp/gh-ost.postpone.referringitem.cutover.flag.file \
     -alter "MODIFY baseitem_id bigint(20) NOT NULL;" \
     --execute
 
 # # Continuing Approach-2 => Evolve parent table next
+touch /tmp/gh-ost.postpone.baseitem.cutover.flag.file
 gh-ost \
     -verbose \
     -debug \
@@ -59,6 +63,8 @@ gh-ost \
     -master-user root \
     -master-password toor \
     -table baseitem \
+    -timestamp-old-table \
+    -postpone-cut-over-flag-file /tmp/gh-ost.postpone.baseitem.cutover.flag.file \
     -alter "MODIFY id bigint(20) NOT NULL AUTO_INCREMENT;" \
     --execute
 

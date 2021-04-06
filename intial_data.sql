@@ -28,7 +28,7 @@ use try_osc;
 CREATE TABLE try_osc.baseitem (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `created_on` datetime NOT NULL,
-  `updated_on` datetime NOT NULL,
+  `updated_on` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `product_id` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -38,7 +38,7 @@ CREATE TABLE try_osc.referringitem (
   `baseitem_id` int(11) NOT NULL,
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `created_on` datetime NOT NULL,
-  `updated_on` datetime NOT NULL,
+  `updated_on` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `some_id` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `referringitem_23d46617` (`some_id`),
